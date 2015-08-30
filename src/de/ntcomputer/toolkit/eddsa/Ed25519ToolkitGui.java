@@ -55,27 +55,11 @@ public class Ed25519ToolkitGui {
 	private JButton btnSignatureFileSelect;
 
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Ed25519ToolkitGui window = new Ed25519ToolkitGui();
-					window.frmEdToolkit.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
 	 * Create the application.
 	 */
-	public Ed25519ToolkitGui() {
-		this.model = new Ed25519ToolkitModel();
-		this.controller = new Ed25519ToolkitController(model);
+	public Ed25519ToolkitGui(Ed25519ToolkitModel model, Ed25519ToolkitController controller) {
+		this.model = model;
+		this.controller = controller;
 		initialize();
 	}
 
@@ -304,6 +288,8 @@ public class Ed25519ToolkitGui {
 		privateKeyChooser = new JFileChooser();
 		
 		frmEdToolkit.pack();
+		frmEdToolkit.setLocationRelativeTo(null);
+		frmEdToolkit.setVisible(true);
 	}
 	
 	private void lockKeyLoading() {
