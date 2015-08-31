@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.NoSuchFileException;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -22,16 +21,16 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 
 import de.ntcomputer.crypto.hash.ProgressListener;
 import de.ntcomputer.toolkit.eddsa.Ed25519ToolkitModel.SignatureFilePair;
-import javax.swing.JTextArea;
 
 public class Ed25519ToolkitGui {
 	private final Ed25519ToolkitModel model;
@@ -59,6 +58,9 @@ public class Ed25519ToolkitGui {
 	private JButton btnSignatureFileSelect;
 	private JTextArea stringTextArea;
 	private JTextArea signatureStringTextArea;
+	private JButton btnSignString;
+	private JButton btnVerifyString;
+	private JLabel lblStringSignatureStatusDynamic;
 
 	/**
 	 * Create the application.
@@ -294,8 +296,8 @@ public class Ed25519ToolkitGui {
 		GridBagLayout gbl_stringSignatureFieldPanel = new GridBagLayout();
 		gbl_stringSignatureFieldPanel.columnWidths = new int[] {30, 80, 280, 30};
 		gbl_stringSignatureFieldPanel.rowHeights = new int[] {25, 50, 25, 50};
-		gbl_stringSignatureFieldPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0};
-		gbl_stringSignatureFieldPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0};
+		gbl_stringSignatureFieldPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 1.0};
+		gbl_stringSignatureFieldPanel.rowWeights = new double[]{1.0, 1.0, 0.0, 0.0};
 		stringSignatureFieldPanel.setLayout(gbl_stringSignatureFieldPanel);
 		
 		JLabel lblString = new JLabel("String:");
@@ -305,16 +307,18 @@ public class Ed25519ToolkitGui {
 		gbc_lblString.gridy = 0;
 		stringSignatureFieldPanel.add(lblString, gbc_lblString);
 		
+		JScrollPane scrollPane = new JScrollPane();
+		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+		gbc_scrollPane.gridheight = 2;
+		gbc_scrollPane.insets = new Insets(0, 0, 5, 5);
+		gbc_scrollPane.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane.gridx = 2;
+		gbc_scrollPane.gridy = 0;
+		stringSignatureFieldPanel.add(scrollPane, gbc_scrollPane);
+		
 		stringTextArea = new JTextArea();
-		stringTextArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+		scrollPane.setViewportView(stringTextArea);
 		stringTextArea.setLineWrap(true);
-		GridBagConstraints gbc_stringTextArea = new GridBagConstraints();
-		gbc_stringTextArea.gridheight = 2;
-		gbc_stringTextArea.insets = new Insets(0, 0, 5, 0);
-		gbc_stringTextArea.fill = GridBagConstraints.BOTH;
-		gbc_stringTextArea.gridx = 2;
-		gbc_stringTextArea.gridy = 0;
-		stringSignatureFieldPanel.add(stringTextArea, gbc_stringTextArea);
 		
 		JLabel lblSignatureString = new JLabel("Signature string:");
 		GridBagConstraints gbc_lblSignatureString = new GridBagConstraints();
@@ -323,15 +327,54 @@ public class Ed25519ToolkitGui {
 		gbc_lblSignatureString.gridy = 2;
 		stringSignatureFieldPanel.add(lblSignatureString, gbc_lblSignatureString);
 		
+		JScrollPane scrollPane_1 = new JScrollPane();
+		GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
+		gbc_scrollPane_1.gridheight = 2;
+		gbc_scrollPane_1.insets = new Insets(0, 0, 5, 5);
+		gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane_1.gridx = 2;
+		gbc_scrollPane_1.gridy = 2;
+		stringSignatureFieldPanel.add(scrollPane_1, gbc_scrollPane_1);
+		
 		signatureStringTextArea = new JTextArea();
-		signatureStringTextArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+		scrollPane_1.setViewportView(signatureStringTextArea);
 		signatureStringTextArea.setLineWrap(true);
-		GridBagConstraints gbc_signatureStringTextArea = new GridBagConstraints();
-		gbc_signatureStringTextArea.gridheight = 2;
-		gbc_signatureStringTextArea.fill = GridBagConstraints.BOTH;
-		gbc_signatureStringTextArea.gridx = 2;
-		gbc_signatureStringTextArea.gridy = 2;
-		stringSignatureFieldPanel.add(signatureStringTextArea, gbc_signatureStringTextArea);
+		
+		JPanel stringSignatureButtonPanel = new JPanel();
+		stringSignaturePanel.add(stringSignatureButtonPanel);
+		
+		btnSignString = new JButton("Sign");
+		btnSignString.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				signString();
+			}
+		});
+		btnSignString.setEnabled(false);
+		stringSignatureButtonPanel.add(btnSignString);
+		
+		btnVerifyString = new JButton("Verify");
+		btnVerifyString.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				verifyString();
+			}
+		});
+		btnVerifyString.setEnabled(false);
+		stringSignatureButtonPanel.add(btnVerifyString);
+		
+		Component verticalStrut_3 = Box.createVerticalStrut(10);
+		stringSignaturePanel.add(verticalStrut_3);
+		
+		JSeparator separator_3 = new JSeparator();
+		stringSignaturePanel.add(separator_3);
+		
+		JPanel stringSignatureStatusPanel = new JPanel();
+		stringSignaturePanel.add(stringSignatureStatusPanel);
+		
+		JLabel lblStringSignatureStatus = new JLabel("Status: ");
+		stringSignatureStatusPanel.add(lblStringSignatureStatus);
+		
+		lblStringSignatureStatusDynamic = new JLabel("idle");
+		stringSignatureStatusPanel.add(lblStringSignatureStatusDynamic);
 		
 		sourceFileChooser = new JFileChooser();
 		signatureFileChooser = new JFileChooser();
@@ -405,16 +448,37 @@ public class Ed25519ToolkitGui {
 		this.unlockKeyLoading();
 	}
 	
+	private void lockStringSignatures() {
+		this.lockKeyLoading();
+		stringTextArea.setEnabled(false);
+		signatureStringTextArea.setEnabled(false);
+		btnSignString.setEnabled(false);
+		btnVerifyString.setEnabled(false);
+	}
+	
+	private void unlockStringSignatures() {
+		stringTextArea.setEnabled(true);
+		signatureStringTextArea.setEnabled(true);
+		if(this.model.hasPrivateKey()) btnSignString.setEnabled(true);
+		if(!signatureStringTextArea.getText().isEmpty()) {
+			if(this.model.hasPublicKey()) btnVerifyString.setEnabled(true);
+		}
+		lblStringSignatureStatusDynamic.setText("idle");
+		this.unlockKeyLoading();
+	}
+	
 	private void lockEverything() {
 		this.lockKeyLoading();
 		this.lockKeySaving();
 		this.lockFileSignatures();
+		this.lockStringSignatures();
 	}
 	
 	private void unlockEverything() {
 		this.unlockFileSignatures();
 		this.unlockKeySaving();
 		this.unlockKeyLoading();
+		this.unlockStringSignatures();
 	}
 	
 	private <T> TaskListener<T> tl(SuccessListener<T> sl, ErrorListener el, ProgressListener pl) {
@@ -610,7 +674,7 @@ public class Ed25519ToolkitGui {
         }
         if(confirmed) {
         	lblFileSignatureStatusDynamic.setText("Signing file, please wait...");
-        	this.controller.sign(tl((Void) -> {
+        	this.controller.signFile(tl((Void) -> {
         		unlockFileSignatures();
         		JOptionPane.showMessageDialog(frmEdToolkit, "Signature file successfully created and saved!", "Signed", JOptionPane.INFORMATION_MESSAGE);
     		}, (Exception e) -> {
@@ -631,8 +695,8 @@ public class Ed25519ToolkitGui {
 	
 	private void verifyFile() {
 		this.lockFileSignatures();
-    	lblFileSignatureStatusDynamic.setText("Verifying file signature, please wait...");
-    	this.controller.verify(tl((Boolean result) -> {
+    	lblFileSignatureStatusDynamic.setText("Verifying signature file, please wait...");
+    	this.controller.verifyFile(tl((Boolean result) -> {
     		unlockFileSignatures();
     		if(result) JOptionPane.showMessageDialog(frmEdToolkit, "Signature file successfully verified! The signature is valid!", "Signature verified: valid", JOptionPane.INFORMATION_MESSAGE);
     		else JOptionPane.showMessageDialog(frmEdToolkit, "Signature file verified, the signature is INVALID!", "Signature verified: invalid", JOptionPane.WARNING_MESSAGE);
@@ -644,7 +708,33 @@ public class Ed25519ToolkitGui {
 				JOptionPane.showMessageDialog(frmEdToolkit, "Error verifying signature file: "+e.getMessage(), "Signature verification failed", JOptionPane.ERROR_MESSAGE);
 			}
 		}, (long progress, long limit) -> {
-			lblFileSignatureStatusDynamic.setText("Verifying file signature, please wait... (" + (Math.round(1000.0D*progress/limit)/10.0D) + "%)");
+			lblFileSignatureStatusDynamic.setText("Verifying signature file, please wait... (" + (Math.round(1000.0D*progress/limit)/10.0D) + "%)");
+		}));
+	}
+	
+	private void signString() {
+		this.lockStringSignatures();
+		lblStringSignatureStatusDynamic.setText("Signing string, please wait...");
+    	this.controller.signString(stringTextArea.getText(), tl((String result) -> {
+    		signatureStringTextArea.setText(result);
+    		unlockStringSignatures();
+    		JOptionPane.showMessageDialog(frmEdToolkit, "Signature string successfully created!", "Signed", JOptionPane.INFORMATION_MESSAGE);
+		}, (Exception e) -> {
+			unlockStringSignatures();
+			JOptionPane.showMessageDialog(frmEdToolkit, "Error creating signature string: "+e.getMessage(), "Signing failed", JOptionPane.ERROR_MESSAGE);
+		}));
+	}
+	
+	private void verifyString() {
+		this.lockStringSignatures();
+		lblStringSignatureStatusDynamic.setText("Verifying signature string, please wait...");
+    	this.controller.verifyString(stringTextArea.getText(), signatureStringTextArea.getText(), tl((Boolean result) -> {
+    		unlockStringSignatures();
+    		if(result) JOptionPane.showMessageDialog(frmEdToolkit, "Signature string successfully verified! The signature is valid!", "Signature verified: valid", JOptionPane.INFORMATION_MESSAGE);
+    		else JOptionPane.showMessageDialog(frmEdToolkit, "Signature string verified, the signature is INVALID!", "Signature verified: invalid", JOptionPane.WARNING_MESSAGE);
+		}, (Exception e) -> {
+			unlockStringSignatures();
+			JOptionPane.showMessageDialog(frmEdToolkit, "Error verifying signature string: "+e.getMessage(), "Signature verification failed", JOptionPane.ERROR_MESSAGE);
 		}));
 	}
 

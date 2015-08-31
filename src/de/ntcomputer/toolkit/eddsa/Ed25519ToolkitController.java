@@ -84,12 +84,12 @@ public class Ed25519ToolkitController {
 		}, listener);
 	}
 	
-	public void sign(TaskListener<Void> listener) {
+	public void signFile(TaskListener<Void> listener) {
 		SignatureFilePair files = this.model.getSignatureFiles();
-		this.sign(files.getSourceFile(), files.getSignatureFile(), listener);
+		this.signFile(files.getSourceFile(), files.getSignatureFile(), listener);
 	}
 	
-	public void sign(File sourceFile, File signatureFile, TaskListener<Void> listener) {
+	public void signFile(File sourceFile, File signatureFile, TaskListener<Void> listener) {
 		Ed25519PrivateKey privateKey = model.getPrivateKey();
 		this.executeTask(() -> {
 			privateKey.signToFile(sourceFile, signatureFile, listener);
@@ -97,15 +97,29 @@ public class Ed25519ToolkitController {
 		}, listener);
 	}
 	
-	public void verify(TaskListener<Boolean> listener) {
+	public void verifyFile(TaskListener<Boolean> listener) {
 		SignatureFilePair files = this.model.getSignatureFiles();
-		this.verify(files.getSourceFile(), files.getSignatureFile(), listener);
+		this.verifyFile(files.getSourceFile(), files.getSignatureFile(), listener);
 	}
 	
-	public void verify(File sourceFile, File signatureFile, TaskListener<Boolean> listener) {
+	public void verifyFile(File sourceFile, File signatureFile, TaskListener<Boolean> listener) {
 		Ed25519PublicKey publicKey = model.getPublicKey();
 		this.executeTask(() -> {
 			return publicKey.verifyFromFile(sourceFile, signatureFile, listener);
+		}, listener);
+	}
+	
+	public void signString(String data, TaskListener<String> listener) {
+		Ed25519PrivateKey privateKey = model.getPrivateKey();
+		this.executeTask(() -> {
+			return privateKey.sign(data);
+		}, listener);
+	}
+	
+	public void verifyString(String data, String signature, TaskListener<Boolean> listener) {
+		Ed25519PublicKey publicKey = model.getPublicKey();
+		this.executeTask(() -> {
+			return publicKey.verify(data, signature);
 		}, listener);
 	}
 
