@@ -92,7 +92,7 @@ public class Ed25519ToolkitController {
 	public void sign(File sourceFile, File signatureFile, TaskListener<Void> listener) {
 		Ed25519PrivateKey privateKey = model.getPrivateKey();
 		this.executeTask(() -> {
-			privateKey.signToFile(sourceFile, signatureFile);
+			privateKey.signToFile(sourceFile, signatureFile, listener);
 			return null;
 		}, listener);
 	}
@@ -105,7 +105,7 @@ public class Ed25519ToolkitController {
 	public void verify(File sourceFile, File signatureFile, TaskListener<Boolean> listener) {
 		Ed25519PublicKey publicKey = model.getPublicKey();
 		this.executeTask(() -> {
-			return publicKey.verifyFromFile(sourceFile, signatureFile);
+			return publicKey.verifyFromFile(sourceFile, signatureFile, listener);
 		}, listener);
 	}
 

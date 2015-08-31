@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.NoSuchFileException;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -25,9 +26,12 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 
+import de.ntcomputer.crypto.hash.ProgressListener;
 import de.ntcomputer.toolkit.eddsa.Ed25519ToolkitModel.SignatureFilePair;
+import javax.swing.JTextArea;
 
 public class Ed25519ToolkitGui {
 	private final Ed25519ToolkitModel model;
@@ -44,15 +48,17 @@ public class Ed25519ToolkitGui {
 	private JLabel lblKeyLoadStatusDynamic;
 	private JButton btnSavePrivateKey;
 	private JButton btnSavePublicKey;
-	private JLabel lblOperationStatusDynamic;
-	private JButton btnSign;
-	private JButton btnVerify;
+	private JLabel lblFileSignatureStatusDynamic;
+	private JButton btnSignFile;
+	private JButton btnVerifyFile;
 	private JButton btnGenerateKeypair;
 	private JButton btnLoadPrivateKey;
 	private JButton btnLoadPublicKey;
 	private JLabel lblKeySaveStatusDynamic;
 	private JButton btnSourceFileSelect;
 	private JButton btnSignatureFileSelect;
+	private JTextArea stringTextArea;
+	private JTextArea signatureStringTextArea;
 
 	/**
 	 * Create the application.
@@ -173,39 +179,35 @@ public class Ed25519ToolkitGui {
 		lblKeySaveStatusDynamic = new JLabel("idle");
 		keySaveStatusPanel.add(lblKeySaveStatusDynamic);
 		
-		JPanel operationPanel = new JPanel();
-		mainPanel.add(operationPanel);
-		operationPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Sign / Verify", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.Y_AXIS));
+		JPanel fileSignaturePanel = new JPanel();
+		mainPanel.add(fileSignaturePanel);
+		fileSignaturePanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Sign / Verify file", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		fileSignaturePanel.setLayout(new BoxLayout(fileSignaturePanel, BoxLayout.Y_AXIS));
 		
-		JPanel operationPanelNested = new JPanel();
-		operationPanel.add(operationPanelNested);
-		operationPanelNested.setLayout(new BoxLayout(operationPanelNested, BoxLayout.Y_AXIS));
-		
-		JPanel operationFilePanel = new JPanel();
-		operationPanelNested.add(operationFilePanel);
-		GridBagLayout gbl_operationFilePanel = new GridBagLayout();
-		gbl_operationFilePanel.columnWidths = new int[] {30, 80, 200, 80, 50};
-		gbl_operationFilePanel.rowHeights = new int[] {25, 25};
-		gbl_operationFilePanel.columnWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0};
-		gbl_operationFilePanel.rowWeights = new double[]{1.0, 0.0};
-		operationFilePanel.setLayout(gbl_operationFilePanel);
+		JPanel fileSignatureSelectPanel = new JPanel();
+		fileSignaturePanel.add(fileSignatureSelectPanel);
+		GridBagLayout gbl_fileSignatureSelectPanel = new GridBagLayout();
+		gbl_fileSignatureSelectPanel.columnWidths = new int[] {30, 80, 400, 80, 30};
+		gbl_fileSignatureSelectPanel.rowHeights = new int[] {25, 25};
+		gbl_fileSignatureSelectPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, 0.0};
+		gbl_fileSignatureSelectPanel.rowWeights = new double[]{0.0, 0.0};
+		fileSignatureSelectPanel.setLayout(gbl_fileSignatureSelectPanel);
 		
 		JLabel lblSourceFile = new JLabel("Source file:");
 		GridBagConstraints gbc_lblSourceFile = new GridBagConstraints();
 		gbc_lblSourceFile.insets = new Insets(0, 0, 5, 5);
 		gbc_lblSourceFile.gridx = 1;
 		gbc_lblSourceFile.gridy = 0;
-		operationFilePanel.add(lblSourceFile, gbc_lblSourceFile);
+		fileSignatureSelectPanel.add(lblSourceFile, gbc_lblSourceFile);
 		
 		tfSourceFile = new JTextField();
 		tfSourceFile.setEditable(false);
 		GridBagConstraints gbc_tfSourceFile = new GridBagConstraints();
+		gbc_tfSourceFile.fill = GridBagConstraints.HORIZONTAL;
 		gbc_tfSourceFile.insets = new Insets(0, 0, 5, 5);
 		gbc_tfSourceFile.gridx = 2;
 		gbc_tfSourceFile.gridy = 0;
-		operationFilePanel.add(tfSourceFile, gbc_tfSourceFile);
-		tfSourceFile.setColumns(40);
+		fileSignatureSelectPanel.add(tfSourceFile, gbc_tfSourceFile);
 		
 		btnSourceFileSelect = new JButton("select...");
 		btnSourceFileSelect.addActionListener(new ActionListener() {
@@ -217,23 +219,23 @@ public class Ed25519ToolkitGui {
 		gbc_btnSourceFileSelect.insets = new Insets(0, 0, 5, 0);
 		gbc_btnSourceFileSelect.gridx = 3;
 		gbc_btnSourceFileSelect.gridy = 0;
-		operationFilePanel.add(btnSourceFileSelect, gbc_btnSourceFileSelect);
+		fileSignatureSelectPanel.add(btnSourceFileSelect, gbc_btnSourceFileSelect);
 		
 		JLabel lblSignatureFile = new JLabel("Signature file:");
 		GridBagConstraints gbc_lblSignatureFile = new GridBagConstraints();
 		gbc_lblSignatureFile.insets = new Insets(0, 0, 0, 5);
 		gbc_lblSignatureFile.gridx = 1;
 		gbc_lblSignatureFile.gridy = 1;
-		operationFilePanel.add(lblSignatureFile, gbc_lblSignatureFile);
+		fileSignatureSelectPanel.add(lblSignatureFile, gbc_lblSignatureFile);
 		
 		tfSignatureFile = new JTextField();
 		tfSignatureFile.setEditable(false);
 		GridBagConstraints gbc_tfSignatureFile = new GridBagConstraints();
+		gbc_tfSignatureFile.fill = GridBagConstraints.HORIZONTAL;
 		gbc_tfSignatureFile.insets = new Insets(0, 0, 0, 5);
 		gbc_tfSignatureFile.gridx = 2;
 		gbc_tfSignatureFile.gridy = 1;
-		operationFilePanel.add(tfSignatureFile, gbc_tfSignatureFile);
-		tfSignatureFile.setColumns(40);
+		fileSignatureSelectPanel.add(tfSignatureFile, gbc_tfSignatureFile);
 		
 		btnSignatureFileSelect = new JButton("select...");
 		btnSignatureFileSelect.addActionListener(new ActionListener() {
@@ -244,43 +246,92 @@ public class Ed25519ToolkitGui {
 		GridBagConstraints gbc_btnSignatureFileSelect = new GridBagConstraints();
 		gbc_btnSignatureFileSelect.gridx = 3;
 		gbc_btnSignatureFileSelect.gridy = 1;
-		operationFilePanel.add(btnSignatureFileSelect, gbc_btnSignatureFileSelect);
+		fileSignatureSelectPanel.add(btnSignatureFileSelect, gbc_btnSignatureFileSelect);
 		
-		JPanel operationButtonPanel = new JPanel();
-		operationPanelNested.add(operationButtonPanel);
+		JPanel fileSignatureButtonPanel = new JPanel();
+		fileSignaturePanel.add(fileSignatureButtonPanel);
 		
-		btnSign = new JButton("Sign");
-		btnSign.addActionListener(new ActionListener() {
+		btnSignFile = new JButton("Sign");
+		btnSignFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				sign();
+				signFile();
 			}
 		});
-		btnSign.setEnabled(false);
-		operationButtonPanel.add(btnSign);
+		btnSignFile.setEnabled(false);
+		fileSignatureButtonPanel.add(btnSignFile);
 		
-		btnVerify = new JButton("Verify");
-		btnVerify.addActionListener(new ActionListener() {
+		btnVerifyFile = new JButton("Verify");
+		btnVerifyFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				verify();
+				verifyFile();
 			}
 		});
-		btnVerify.setEnabled(false);
-		operationButtonPanel.add(btnVerify);
+		btnVerifyFile.setEnabled(false);
+		fileSignatureButtonPanel.add(btnVerifyFile);
 		
 		Component verticalStrut = Box.createVerticalStrut(10);
-		operationPanelNested.add(verticalStrut);
+		fileSignaturePanel.add(verticalStrut);
 		
 		JSeparator separator_1 = new JSeparator();
-		operationPanelNested.add(separator_1);
+		fileSignaturePanel.add(separator_1);
 		
-		JPanel operationStatusPanel = new JPanel();
-		operationPanelNested.add(operationStatusPanel);
+		JPanel fileSignatureStatusPanel = new JPanel();
+		fileSignaturePanel.add(fileSignatureStatusPanel);
 		
-		JLabel lblOperationStatus = new JLabel("Status: ");
-		operationStatusPanel.add(lblOperationStatus);
+		JLabel lblFileSignatureStatus = new JLabel("Status: ");
+		fileSignatureStatusPanel.add(lblFileSignatureStatus);
 		
-		lblOperationStatusDynamic = new JLabel("idle");
-		operationStatusPanel.add(lblOperationStatusDynamic);
+		lblFileSignatureStatusDynamic = new JLabel("idle");
+		fileSignatureStatusPanel.add(lblFileSignatureStatusDynamic);
+		
+		JPanel stringSignaturePanel = new JPanel();
+		stringSignaturePanel.setBorder(new TitledBorder(null, "Sign / Verify string", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		mainPanel.add(stringSignaturePanel);
+		stringSignaturePanel.setLayout(new BoxLayout(stringSignaturePanel, BoxLayout.Y_AXIS));
+		
+		JPanel stringSignatureFieldPanel = new JPanel();
+		stringSignaturePanel.add(stringSignatureFieldPanel);
+		GridBagLayout gbl_stringSignatureFieldPanel = new GridBagLayout();
+		gbl_stringSignatureFieldPanel.columnWidths = new int[] {30, 80, 280, 30};
+		gbl_stringSignatureFieldPanel.rowHeights = new int[] {25, 50, 25, 50};
+		gbl_stringSignatureFieldPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0};
+		gbl_stringSignatureFieldPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0};
+		stringSignatureFieldPanel.setLayout(gbl_stringSignatureFieldPanel);
+		
+		JLabel lblString = new JLabel("String:");
+		GridBagConstraints gbc_lblString = new GridBagConstraints();
+		gbc_lblString.insets = new Insets(0, 0, 5, 5);
+		gbc_lblString.gridx = 1;
+		gbc_lblString.gridy = 0;
+		stringSignatureFieldPanel.add(lblString, gbc_lblString);
+		
+		stringTextArea = new JTextArea();
+		stringTextArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+		stringTextArea.setLineWrap(true);
+		GridBagConstraints gbc_stringTextArea = new GridBagConstraints();
+		gbc_stringTextArea.gridheight = 2;
+		gbc_stringTextArea.insets = new Insets(0, 0, 5, 0);
+		gbc_stringTextArea.fill = GridBagConstraints.BOTH;
+		gbc_stringTextArea.gridx = 2;
+		gbc_stringTextArea.gridy = 0;
+		stringSignatureFieldPanel.add(stringTextArea, gbc_stringTextArea);
+		
+		JLabel lblSignatureString = new JLabel("Signature string:");
+		GridBagConstraints gbc_lblSignatureString = new GridBagConstraints();
+		gbc_lblSignatureString.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSignatureString.gridx = 1;
+		gbc_lblSignatureString.gridy = 2;
+		stringSignatureFieldPanel.add(lblSignatureString, gbc_lblSignatureString);
+		
+		signatureStringTextArea = new JTextArea();
+		signatureStringTextArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+		signatureStringTextArea.setLineWrap(true);
+		GridBagConstraints gbc_signatureStringTextArea = new GridBagConstraints();
+		gbc_signatureStringTextArea.gridheight = 2;
+		gbc_signatureStringTextArea.fill = GridBagConstraints.BOTH;
+		gbc_signatureStringTextArea.gridx = 2;
+		gbc_signatureStringTextArea.gridy = 2;
+		stringSignatureFieldPanel.add(signatureStringTextArea, gbc_signatureStringTextArea);
 		
 		sourceFileChooser = new JFileChooser();
 		signatureFileChooser = new JFileChooser();
@@ -335,35 +386,58 @@ public class Ed25519ToolkitGui {
 		this.unlockKeyLoading();
 	}
 	
-	private void lockOperations() {
+	private void lockFileSignatures() {
 		this.lockKeyLoading();
 		btnSourceFileSelect.setEnabled(false);
 		btnSignatureFileSelect.setEnabled(false);
-		btnSign.setEnabled(false);
-		btnVerify.setEnabled(false);
+		btnSignFile.setEnabled(false);
+		btnVerifyFile.setEnabled(false);
 	}
 	
-	private void unlockOperations() {
+	private void unlockFileSignatures() {
 		btnSourceFileSelect.setEnabled(true);
 		btnSignatureFileSelect.setEnabled(true);
 		if(this.model.hasSignatureFiles()) {
-			if(this.model.hasPrivateKey()) btnSign.setEnabled(true);
-			if(this.model.hasPublicKey()) btnVerify.setEnabled(true);
+			if(this.model.hasPrivateKey()) btnSignFile.setEnabled(true);
+			if(this.model.hasPublicKey()) btnVerifyFile.setEnabled(true);
 		}
-		lblOperationStatusDynamic.setText("idle");
+		lblFileSignatureStatusDynamic.setText("idle");
 		this.unlockKeyLoading();
 	}
 	
 	private void lockEverything() {
 		this.lockKeyLoading();
 		this.lockKeySaving();
-		this.lockOperations();
+		this.lockFileSignatures();
 	}
 	
 	private void unlockEverything() {
-		this.unlockOperations();
+		this.unlockFileSignatures();
 		this.unlockKeySaving();
 		this.unlockKeyLoading();
+	}
+	
+	private <T> TaskListener<T> tl(SuccessListener<T> sl, ErrorListener el, ProgressListener pl) {
+		return new TaskListener<T>() {
+			@Override
+			public void onSuccess(T result) {
+				EventQueue.invokeLater(() -> {
+					sl.onSuccess(result);
+				});
+			}
+			@Override
+			public void onError(Exception e) {
+				EventQueue.invokeLater(() -> {
+					el.onError(e);
+				});
+			}
+			@Override
+			public void onProgress(long progress, long limit) {
+				EventQueue.invokeLater(() -> {
+					pl.onProgress(progress, limit);
+				});
+			}
+		};
 	}
 	
 	private <T> TaskListener<T> tl(SuccessListener<T> sl, ErrorListener el) {
@@ -379,6 +453,9 @@ public class Ed25519ToolkitGui {
 				EventQueue.invokeLater(() -> {
 					el.onError(e);
 				});
+			}
+			@Override
+			public void onProgress(long progress, long limit) {
 			}
 		};
 	}
@@ -499,7 +576,7 @@ public class Ed25519ToolkitGui {
 	}
 	
 	private void selectSourceFile() {
-		this.lockOperations();
+		this.lockFileSignatures();
 		int returnVal = sourceFileChooser.showOpenDialog(frmEdToolkit);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
             File sourceFile = sourceFileChooser.getSelectedFile();
@@ -508,23 +585,23 @@ public class Ed25519ToolkitGui {
             tfSignatureFile.setText(signatureFile.getAbsolutePath());
             model.setSignatureFiles(sourceFile, signatureFile);
 		}
-		this.unlockOperations();
+		this.unlockFileSignatures();
 	}
 	
 	private void selectSignatureFile() {
-		this.lockOperations();
+		this.lockFileSignatures();
 		int returnVal = signatureFileChooser.showSaveDialog(frmEdToolkit);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
             File signatureFile = signatureFileChooser.getSelectedFile();
             tfSignatureFile.setText(signatureFile.getAbsolutePath());
             model.setSignatureFile(signatureFile);
 		}
-		this.unlockOperations();
+		this.unlockFileSignatures();
 	}
 	
-	private void sign() {
-		this.lockOperations();
-		lblOperationStatusDynamic.setText("Signing file...");
+	private void signFile() {
+		this.lockFileSignatures();
+		lblFileSignatureStatusDynamic.setText("Signing file...");
         SignatureFilePair signatureFiles = model.getSignatureFiles();
         boolean confirmed = true;
         if(signatureFiles.getSignatureFile().isFile()) {
@@ -532,38 +609,42 @@ public class Ed25519ToolkitGui {
         	if(dialogResult!=JOptionPane.YES_OPTION) confirmed = false;
         }
         if(confirmed) {
-        	lblOperationStatusDynamic.setText("Signing file, please wait...");
+        	lblFileSignatureStatusDynamic.setText("Signing file, please wait...");
         	this.controller.sign(tl((Void) -> {
-        		unlockOperations();
+        		unlockFileSignatures();
         		JOptionPane.showMessageDialog(frmEdToolkit, "Signature file successfully created and saved!", "Signed", JOptionPane.INFORMATION_MESSAGE);
     		}, (Exception e) -> {
-    			unlockOperations();
+    			unlockFileSignatures();
     			if(e instanceof FileNotFoundException || e instanceof NoSuchFileException) {
     				JOptionPane.showMessageDialog(frmEdToolkit, "Error creating signature file: File '"+e.getMessage()+"' does not exist.", "Signing failed", JOptionPane.ERROR_MESSAGE);
     			} else {
     				JOptionPane.showMessageDialog(frmEdToolkit, "Error creating signature file: "+e.getMessage(), "Signing failed", JOptionPane.ERROR_MESSAGE);
     			}
+    		}, (long progress, long limit) -> {
+    			lblFileSignatureStatusDynamic.setText("Signing file, please wait... (" + (Math.round(1000.0D*progress/limit)/10.0D) + "%)");
     		}));
             return;
         }
-		this.unlockOperations();
-		lblOperationStatusDynamic.setText("Signing file aborted.");
+		this.unlockFileSignatures();
+		lblFileSignatureStatusDynamic.setText("Signing file aborted.");
 	}
 	
-	private void verify() {
-		this.lockOperations();
-    	lblOperationStatusDynamic.setText("Verifying file signature, please wait...");
+	private void verifyFile() {
+		this.lockFileSignatures();
+    	lblFileSignatureStatusDynamic.setText("Verifying file signature, please wait...");
     	this.controller.verify(tl((Boolean result) -> {
-    		unlockOperations();
+    		unlockFileSignatures();
     		if(result) JOptionPane.showMessageDialog(frmEdToolkit, "Signature file successfully verified! The signature is valid!", "Signature verified: valid", JOptionPane.INFORMATION_MESSAGE);
     		else JOptionPane.showMessageDialog(frmEdToolkit, "Signature file verified, the signature is INVALID!", "Signature verified: invalid", JOptionPane.WARNING_MESSAGE);
 		}, (Exception e) -> {
-			unlockOperations();
+			unlockFileSignatures();
 			if(e instanceof FileNotFoundException || e instanceof NoSuchFileException) {
 				JOptionPane.showMessageDialog(frmEdToolkit, "Error verifying signature file: File '"+e.getMessage()+"' does not exist.", "Signature verification failed", JOptionPane.ERROR_MESSAGE);
 			} else {
 				JOptionPane.showMessageDialog(frmEdToolkit, "Error verifying signature file: "+e.getMessage(), "Signature verification failed", JOptionPane.ERROR_MESSAGE);
 			}
+		}, (long progress, long limit) -> {
+			lblFileSignatureStatusDynamic.setText("Verifying file signature, please wait... (" + (Math.round(1000.0D*progress/limit)/10.0D) + "%)");
 		}));
 	}
 
