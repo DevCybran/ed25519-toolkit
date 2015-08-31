@@ -2,8 +2,6 @@ package de.ntcomputer.toolkit.eddsa;
 
 import java.io.File;
 
-import javax.security.auth.DestroyFailedException;
-
 import de.ntcomputer.crypto.eddsa.Ed25519PrivateKey;
 import de.ntcomputer.crypto.eddsa.Ed25519PublicKey;
 
@@ -15,12 +13,6 @@ public class Ed25519ToolkitModel {
 	private File signatureFile = null;
 	
 	public synchronized void resetKeys() {
-		if(this.privateKey!=null) {
-			try {
-				this.privateKey.destroy();
-			} catch (DestroyFailedException e) {
-			}
-		}
 		this.privateKey = null;
 		this.publicKey = null;
 		this.keyOrigin = KeyOrigin.NONE;
